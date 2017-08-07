@@ -124,15 +124,23 @@ class MySeq2Seq(object):
         for i in range(30,40,10):
             # 问句、答句都是16字，所以取32个
             start = i*self.max_seq_len*2
+
             middle = i*self.max_seq_len*2 + self.max_seq_len
+
             end = (i+1)*self.max_seq_len*2
+
             sequence_xy = seq[start:end]
             sequence_y = seq[middle:end]
+
+
             print "right answer"
             for w in sequence_y:
                 (match_word, max_cos) = vector2word(w)
                 print match_word
+
             sequence_y = [np.ones(self.word_vec_dim)] + sequence_y
+
+
             xy_data.append(sequence_xy)
             y_data.append(sequence_y)
 

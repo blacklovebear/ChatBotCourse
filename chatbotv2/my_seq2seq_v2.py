@@ -141,6 +141,7 @@ class MySeq2Seq(object):
     这样就可以通过regression来做回归计算了，输入的y也展平，保持一致
     """
     def __init__(self, input_file, max_seq_len = 16, word_vec_dim = 200):
+        # self.max_seq_len是指一个切好词的句子最多包含多少个词
         self.max_seq_len = max_seq_len
         self.word_vec_dim = word_vec_dim
         self.input_file = input_file
@@ -155,11 +156,18 @@ class MySeq2Seq(object):
         #for i in range(100):
             question_seq = question_seqs[i]
             answer_seq = answer_seqs[i]
+
+            # max_seq_len 表示一个问或答，最多由多少个词或词组组成
             if len(question_seq) < self.max_seq_len and len(answer_seq) < self.max_seq_len:
+
                 sequence_xy = [np.zeros(self.word_vec_dim)] * (self.max_seq_len-len(question_seq)) + list(reversed(question_seq))
+
                 sequence_y = answer_seq + [np.zeros(self.word_vec_dim)] * (self.max_seq_len-len(answer_seq))
+
                 sequence_xy = sequence_xy + sequence_y
                 sequence_y = [np.ones(self.word_vec_dim)] + sequence_y
+
+
                 xy_data.append(sequence_xy)
                 y_data.append(sequence_y)
 
@@ -175,14 +183,18 @@ class MySeq2Seq(object):
     def model(self, feed_previous=False):
         # 通过输入的XY生成encoder_inputs和带GO头的decoder_inputs
         input_data = tflearn.input_data(shape=[None, self.max_seq_len*2, self.word_vec_dim], dtype=tf.float32, name = "XY")
+
         encoder_inputs = tf.slice(input_data, [0, 0, 0], [-1, self.max_seq_len, self.word_vec_dim], name="enc_in")
         decoder_inputs_tmp = tf.slice(input_data, [0, self.max_seq_len, 0], [-1, self.max_seq_len-1, self.word_vec_dim], name="dec_in_tmp")
+
         go_inputs = tf.ones_like(decoder_inputs_tmp)
         go_inputs = tf.slice(go_inputs, [0, 0, 0], [-1, 1, self.word_vec_dim])
-        decoder_inputs = tf.concat(1, [go_inputs, decoder_inputs_tmp], name="dec_in")
+
+        # decoder_inputs = tf.concat(1, [go_inputs, decoder_inputs_tmp], name="dec_in")
+        decoder_inputs = tf.concat([go_inputs, decoder_inputs_tmp], 1, name="dec_in")
 
         # 编码器
-        # 把encoder_inputs交给编码器，返回一个输出(预测序列的第一个值)和一个状态(传给解码器)
+        # 把 encoder_inputs 交给编码器，返回一个输出(预测序列的第一个值)和一个状态(传给解码器)
         (encoder_output_tensor, states) = tflearn.lstm(encoder_inputs, self.word_vec_dim, return_state=True, scope='encoder_lstm')
         encoder_output_sequence = tf.pack([encoder_output_tensor], axis=1)
 
