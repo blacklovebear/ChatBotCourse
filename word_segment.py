@@ -13,7 +13,7 @@ def segment(input, output):
     count = 0
     while True:
         line = input_file.readline()
-        if count % 1000 == 0:
+        if count % 10000 == 0:
             print "segment lines: %d" % count
         if line:
             line = line.strip()
