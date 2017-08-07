@@ -10,18 +10,26 @@ from jieba import analyse
 def segment(input, output):
     input_file = open(input, "r")
     output_file = open(output, "w")
+    count = 0
     while True:
         line = input_file.readline()
+        if count % 1000 == 0:
+            print "segment lines: %d" % count
         if line:
             line = line.strip()
             seg_list = jieba.cut(line)
-            segments = ""
-            for str in seg_list:
-                segments = segments + " " + str
-            segments = segments + "\n"
-            output_file.write(segments)
+            segments = []
+
+            for seg in seg_list:
+                segments.append(seg + " ")
+
+            segments.append("\n")
+            output_file.write("".join(segments))
         else:
             break
+
+        count += 1
+
     input_file.close()
     output_file.close()
 
