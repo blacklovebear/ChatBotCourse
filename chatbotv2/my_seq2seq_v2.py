@@ -219,22 +219,22 @@ class MySeq2Seq(object):
             decoder_output_sequence_list.append(decoder_output_tensor)
 
         decoder_output_sequence = tf.stack(decoder_output_sequence_list, axis=1)
-        real_output_sequence = tf.concat(1, [encoder_output_sequence, decoder_output_sequence])
+        real_output_sequence = tf.concat([encoder_output_sequence, decoder_output_sequence], 1)
 
         net = tflearn.regression(real_output_sequence, optimizer='sgd', learning_rate=0.1, loss='mean_square')
-        model = tflearn.DNN(net)
+        model = tflearn.DNN(net, checkpoint_path="./model")
         return model
 
     def train(self):
         trainXY, trainY = self.generate_trainig_data()
         model = self.model(feed_previous=False)
-        model.fit(trainXY, trainY, n_epoch=1000, snapshot_epoch=False, batch_size=1)
-        model.save('./model/model')
+        model.fit(trainXY, trainY, n_epoch=1000, snapshot_epoch=True, snapshot_step=10, batch_size=1)
+        model.save('./model')
         return model
 
     def load(self):
         model = self.model(feed_previous=True)
-        model.load('./model/model')
+        model.load('./model')
         return model
 
 if __name__ == '__main__':
