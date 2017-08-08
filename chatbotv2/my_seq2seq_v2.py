@@ -228,7 +228,7 @@ class MySeq2Seq(object):
     def train(self):
         trainXY, trainY = self.generate_trainig_data()
         model = self.model(feed_previous=False)
-        model.fit(trainXY, trainY, n_epoch=1000, snapshot_epoch=False, snapshot_step=100, batch_size=100)
+        model.fit(trainXY, trainY, n_epoch=1000, snapshot_epoch=False, snapshot_step=3000, batch_size=100)
         model.save('./model/model')
         return model
 
@@ -236,6 +236,44 @@ class MySeq2Seq(object):
         model = self.model(feed_previous=True)
         model.load('./model/model')
         return model
+
+
+def test_predict(my_seq2seq):
+    import jieba
+
+    while True:
+        input_string = raw_input('me > ')
+        # 退出
+        if input_string == 'quit':
+            exit()
+
+        input_string_vec = []
+        seg_list = jieba.cut(input_string.strip())
+
+        for seg in seg_list:
+            word = seg.decode('utf-8')
+            if word_vector_dict.has_key(word):
+                    input_string_vec.append(word_vector_dict[word])
+
+
+
+        model = my_seq2seq.load()
+        # trainXY, trainY = my_seq2seq.generate_trainig_data()
+
+        print "question: %s" % trainXY
+        predict = model.predict([input_string_vec])
+
+        output_string=[]
+        for sample in predict:
+            print "predict answer: "
+            for w in sample[1:]:
+                (match_word, max_cos) = vector2word(w)
+                #if vector_sqrtlen(w) < 1:
+                #    break
+                output_string.append(match_word)
+
+            print 'AI > ' + ''.join( output_string )
+
 
 if __name__ == '__main__':
     phrase = sys.argv[1]
@@ -249,15 +287,17 @@ if __name__ == '__main__':
     if phrase == 'train':
         my_seq2seq.train()
     else:
-        model = my_seq2seq.load()
-        trainXY, trainY = my_seq2seq.generate_trainig_data()
+        test_predict(my_seq2seq)
 
-        print "question: %s" % trainXY
-        predict = model.predict(trainXY)
-        for sample in predict:
-            print "predict answer: "
-            for w in sample[1:]:
-                (match_word, max_cos) = vector2word(w)
-                #if vector_sqrtlen(w) < 1:
-                #    break
-                print match_word, max_cos, vector_sqrtlen(w)
+        # model = my_seq2seq.load()
+        # trainXY, trainY = my_seq2seq.generate_trainig_data()
+
+        # print "question: %s" % trainXY
+        # predict = model.predict(trainXY)
+        # for sample in predict:
+        #     print "predict answer: "
+        #     for w in sample[1:]:
+        #         (match_word, max_cos) = vector2word(w)
+        #         #if vector_sqrtlen(w) < 1:
+        #         #    break
+        #         print match_word, max_cos, vector_sqrtlen(w)
