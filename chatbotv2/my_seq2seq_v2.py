@@ -8,6 +8,7 @@ from tensorflow.python.ops import rnn_cell
 from tensorflow.python.ops import rnn
 import numpy as np
 import struct
+import jieba
 
 question_seqs = []
 answer_seqs = []
@@ -238,11 +239,7 @@ class MySeq2Seq(object):
         return model
 
 
-def test_predict(my_seq2seq):
-    import jieba
-
-    model = my_seq2seq.load()
-
+def predict_input(model){
     input_string = raw_input('me > ')
     # 退出
     if input_string == 'quit':
@@ -252,45 +249,36 @@ def test_predict(my_seq2seq):
 
     question_seq = []
     answer_seq = []
-
     for word in seg_list:
         # word = seg.decode('utf-8')
         if word_vector_dict.has_key(word):
             print "append [%s]" % word
             question_seq.append(word_vector_dict[word])
             answer_seq.append(word_vector_dict[word])
-
-    print "question_seq: "
-    print question_seq
-
+    # print "question_seq: " question_seq
     xy_data = []
     if len(question_seq) < max_seq_len and len(answer_seq) < max_seq_len:
         sequence_xy = [np.zeros(word_vec_dim)] * (max_seq_len-len(question_seq)) + list(reversed(question_seq))
-
         sequence_y = answer_seq + [np.zeros(word_vec_dim)] * (max_seq_len-len(answer_seq))
-
         sequence_xy = sequence_xy + sequence_y
         sequence_y = [np.ones(word_vec_dim)] + sequence_y
 
-
         xy_data.append(sequence_xy)
 
-    # trainXY, trainY = my_seq2seq.generate_trainig_data()
-
-    # print "question: %s" % trainXY
     predict = model.predict(np.array(xy_data))
-
     output_string=[]
     for sample in predict:
-        print "predict answer: "
         for w in sample[1:]:
             (match_word, max_cos) = vector2word(w)
-            #if vector_sqrtlen(w) < 1:
-            #    break
             output_string.append(match_word)
 
         print 'AI > ' + ''.join( output_string )
+}
 
+def test_predict(my_seq2seq):
+    model = my_seq2seq.load()
+    while True:
+        predict_input(model)
 
 if __name__ == '__main__':
     phrase = sys.argv[1]
