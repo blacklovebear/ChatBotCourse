@@ -243,24 +243,22 @@ def test_predict(my_seq2seq):
 
     model = my_seq2seq.load()
 
-    # input_string = raw_input('me > ')
-    input_string = u'不要 嘛'
+    input_string = raw_input('me > ')
     # 退出
     if input_string == 'quit':
         exit()
 
-    # seg_list = jieba.cut(input_string.strip())
+    seg_list = jieba.cut(input_string.strip())
 
     question_seq = []
     answer_seq = []
 
-    for seg in input_string.split(' '):
+    for word in seg_list:
         # word = seg.decode('utf-8')
-        word = seg
         if word_vector_dict.has_key(word):
-                question_seq.append(word_vector_dict[word])
-                answer_seq.append(word_vector_dict[word])
-
+            print "append [%s]" % word
+            question_seq.append(word_vector_dict[word])
+            answer_seq.append(word_vector_dict[word])
 
     print "question_seq: "
     print question_seq
@@ -306,6 +304,8 @@ if __name__ == '__main__':
     if phrase == 'train':
         my_seq2seq.train()
     else:
+        load_word_set(sys.argv[2])
+        load_vectors("./vectors.bin")
         test_predict(my_seq2seq)
 
         # model = my_seq2seq.load()
