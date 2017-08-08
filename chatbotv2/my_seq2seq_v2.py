@@ -227,7 +227,7 @@ class MySeq2Seq(object):
         return model
 
 
-def predict_input(model){
+def predict_input(model):
     input_string = raw_input('me > ')
     # 退出
     if input_string == 'quit':
@@ -261,7 +261,6 @@ def predict_input(model){
             output_string.append(match_word)
 
         print 'AI > ' + ''.join( output_string )
-}
 
 def test_predict(my_seq2seq):
     model = my_seq2seq.load()
