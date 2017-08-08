@@ -244,24 +244,26 @@ def test_predict(my_seq2seq):
     model = my_seq2seq.load()
 
     # input_string = raw_input('me > ')
-    input_string = u'道路'
+    input_string = u'不要 嘛'
     # 退出
     if input_string == 'quit':
         exit()
 
-    seg_list = jieba.cut(input_string.strip())
-
+    # seg_list = jieba.cut(input_string.strip())
 
     question_seq = []
     answer_seq = []
 
-    for seg in seg_list:
+    for seg in input_string.split(' '):
         # word = seg.decode('utf-8')
         word = seg
         if word_vector_dict.has_key(word):
                 question_seq.append(word_vector_dict[word])
                 answer_seq.append(word_vector_dict[word])
 
+
+    print "question_seq: "
+    print question_seq
 
     xy_data = []
     if len(question_seq) < max_seq_len and len(answer_seq) < max_seq_len:
