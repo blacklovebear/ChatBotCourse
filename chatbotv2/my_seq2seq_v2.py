@@ -241,58 +241,55 @@ class MySeq2Seq(object):
 def test_predict(my_seq2seq):
     import jieba
 
-    while True:
-        # input_string = raw_input('me > ')
-        input_string = u'道路'
-        # 退出
-        if input_string == 'quit':
-            exit()
+    model = my_seq2seq.load()
 
-        seg_list = jieba.cut(input_string.strip())
+    # input_string = raw_input('me > ')
+    input_string = u'道路'
+    # 退出
+    if input_string == 'quit':
+        exit()
 
-
-        question_seq = []
-        answer_seq = []
-        question_seq.append(word_vector_dict[word])
-
-        for seg in seg_list:
-            word = seg.decode('utf-8')
-            if word_vector_dict.has_key(word):
-                    question_seq.append(word_vector_dict[word])
-                    answer_seq.append(word_vector_dict[word])
+    seg_list = jieba.cut(input_string.strip())
 
 
-        xy_data = []
-        if len(question_seq) < self.max_seq_len and len(answer_seq) < self.max_seq_len:
-            sequence_xy = [np.zeros(self.word_vec_dim)] * (self.max_seq_len-len(question_seq)) + list(reversed(question_seq))
+    question_seq = []
+    answer_seq = []
 
-            sequence_y = answer_seq + [np.zeros(self.word_vec_dim)] * (self.max_seq_len-len(answer_seq))
-
-            sequence_xy = sequence_xy + sequence_y
-            sequence_y = [np.ones(self.word_vec_dim)] + sequence_y
-
-
-            xy_data.append(sequence_xy)
+    for seg in seg_list:
+        # word = seg.decode('utf-8')
+        word = seg
+        if word_vector_dict.has_key(word):
+                question_seq.append(word_vector_dict[word])
+                answer_seq.append(word_vector_dict[word])
 
 
+    xy_data = []
+    if len(question_seq) < max_seq_len and len(answer_seq) < max_seq_len:
+        sequence_xy = [np.zeros(word_vec_dim)] * (max_seq_len-len(question_seq)) + list(reversed(question_seq))
+
+        sequence_y = answer_seq + [np.zeros(word_vec_dim)] * (max_seq_len-len(answer_seq))
+
+        sequence_xy = sequence_xy + sequence_y
+        sequence_y = [np.ones(word_vec_dim)] + sequence_y
 
 
-        model = my_seq2seq.load()
-        # trainXY, trainY = my_seq2seq.generate_trainig_data()
+        xy_data.append(sequence_xy)
 
-        # print "question: %s" % trainXY
-        predict = model.predict(np.array(xy_data))
+    # trainXY, trainY = my_seq2seq.generate_trainig_data()
 
-        output_string=[]
-        for sample in predict:
-            print "predict answer: "
-            for w in sample[1:]:
-                (match_word, max_cos) = vector2word(w)
-                #if vector_sqrtlen(w) < 1:
-                #    break
-                output_string.append(match_word)
+    # print "question: %s" % trainXY
+    predict = model.predict(np.array(xy_data))
 
-            print 'AI > ' + ''.join( output_string )
+    output_string=[]
+    for sample in predict:
+        print "predict answer: "
+        for w in sample[1:]:
+            (match_word, max_cos) = vector2word(w)
+            #if vector_sqrtlen(w) < 1:
+            #    break
+            output_string.append(match_word)
+
+        print 'AI > ' + ''.join( output_string )
 
 
 if __name__ == '__main__':
