@@ -242,26 +242,46 @@ def test_predict(my_seq2seq):
     import jieba
 
     while True:
-        input_string = raw_input('me > ')
+        # input_string = raw_input('me > ')
+        input_string = u'道路'
         # 退出
         if input_string == 'quit':
             exit()
 
-        input_string_vec = []
         seg_list = jieba.cut(input_string.strip())
+
+
+        question_seq = []
+        answer_seq = []
+        question_seq.append(word_vector_dict[word])
 
         for seg in seg_list:
             word = seg.decode('utf-8')
             if word_vector_dict.has_key(word):
-                    input_string_vec.append(word_vector_dict[word])
+                    question_seq.append(word_vector_dict[word])
+                    answer_seq.append(word_vector_dict[word])
+
+
+        xy_data = []
+        if len(question_seq) < self.max_seq_len and len(answer_seq) < self.max_seq_len:
+            sequence_xy = [np.zeros(self.word_vec_dim)] * (self.max_seq_len-len(question_seq)) + list(reversed(question_seq))
+
+            sequence_y = answer_seq + [np.zeros(self.word_vec_dim)] * (self.max_seq_len-len(answer_seq))
+
+            sequence_xy = sequence_xy + sequence_y
+            sequence_y = [np.ones(self.word_vec_dim)] + sequence_y
+
+
+            xy_data.append(sequence_xy)
+
 
 
 
         model = my_seq2seq.load()
         # trainXY, trainY = my_seq2seq.generate_trainig_data()
 
-        print "question: %s" % trainXY
-        predict = model.predict([input_string_vec])
+        # print "question: %s" % trainXY
+        predict = model.predict(np.array(xy_data))
 
         output_string=[]
         for sample in predict:
