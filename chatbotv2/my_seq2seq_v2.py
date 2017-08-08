@@ -17,7 +17,7 @@ max_w = 50
 float_size = 4
 word_vector_dict = {}
 word_vec_dim = 200
-max_seq_len = 8
+max_seq_len = 16
 word_set = {}
 
 def load_word_set(input_file):
@@ -71,12 +71,9 @@ def load_vectors(input):
             vector.append(float(weight))
 
         # 将词及其对应的向量存到dict中
-
-        if word_set.has_key(word.decode('utf-8')):
-            word_vector_dict[word.decode('utf-8')] = vector[0:word_vec_dim]
+        word_vector_dict[word.decode('utf-8')] = vector[0:word_vec_dim]
 
     input_file.close()
-
     print "load vectors finish"
 
 def init_seq(input_file):
@@ -148,13 +145,10 @@ class MySeq2Seq(object):
         self.input_file = input_file
 
     def generate_trainig_data(self):
-        load_word_set(self.input_file)
-        load_vectors("./vectors.bin")
         init_seq(self.input_file)
         xy_data = []
         y_data = []
         for i in range(len(question_seqs)):
-        #for i in range(100):
             question_seq = question_seqs[i]
             answer_seq = answer_seqs[i]
 
@@ -171,12 +165,6 @@ class MySeq2Seq(object):
 
                 xy_data.append(sequence_xy)
                 y_data.append(sequence_y)
-
-                #print "right answer"
-                #for w in answer_seq:
-                #    (match_word, max_cos) = vector2word(w)
-                #    if len(match_word)>0:
-                #        print match_word, vector_sqrtlen(w)
 
         return np.array(xy_data), np.array(y_data)
 
@@ -281,30 +269,21 @@ def test_predict(my_seq2seq):
         predict_input(model)
 
 if __name__ == '__main__':
-    phrase = sys.argv[1]
-    if 3 == len(sys.argv):
-        my_seq2seq = MySeq2Seq(word_vec_dim=word_vec_dim, max_seq_len=max_seq_len, input_file=sys.argv[2])
-    else:
-        print "python my_seq2seq_v2 <phrase> <input_file>"
+
+
+    if 4 != len(sys.argv):
+        print "python my_seq2seq_v2 <phrase> <seq_ques_ans_file> <vec_file>"
         exit(0)
 
+    phrase = sys.argv[1]
+    seq_ques_ans_file = sys.argv[2]
+    vec_file = sys.argv[3]
+
+    my_seq2seq = MySeq2Seq(word_vec_dim=word_vec_dim, max_seq_len=max_seq_len, input_file=seq_ques_ans_file)
+    # load_word_set(self.input_file)
+    load_vectors(vec_file)
 
     if phrase == 'train':
         my_seq2seq.train()
     else:
-        load_word_set(sys.argv[2])
-        load_vectors("./vectors.bin")
         test_predict(my_seq2seq)
-
-        # model = my_seq2seq.load()
-        # trainXY, trainY = my_seq2seq.generate_trainig_data()
-
-        # print "question: %s" % trainXY
-        # predict = model.predict(trainXY)
-        # for sample in predict:
-        #     print "predict answer: "
-        #     for w in sample[1:]:
-        #         (match_word, max_cos) = vector2word(w)
-        #         #if vector_sqrtlen(w) < 1:
-        #         #    break
-        #         print match_word, max_cos, vector_sqrtlen(w)
